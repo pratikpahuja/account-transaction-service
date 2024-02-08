@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+  <changeSet id="20240129090000" author="ppahuja">
+    <createTable tableName="tenant">
+      <column name="id" type="bigint">
+        <constraints primaryKey="true" primaryKeyName="pk_tenant_id" />
+      </column>
+      <column name="name" type="varchar(250)">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+
+    <createTable tableName="customer_tenant">
+      <column name="id" type="bigint">
+        <constraints primaryKey="true" primaryKeyName="pk_customer_tenant_id" />
+      </column>
+      <column name="customer_id" type="bigint">
+        <constraints nullable="false" />
+      </column>
+      <column name="tenant_id" type="bigint">
+        <constraints nullable="false" foreignKeyName="fk_tenant_id_tenant" references="tenant(id)" />
+      </column>
+      <column name="account_balance" type="numeric(5, 2)">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+    <addUniqueConstraint
+      constraintName="uq_customer_tenant_customer_id_tenant_id"
+      tableName="customer_tenant"
+      columnNames="customer_id, tenant_id" />
+
+    <createTable tableName="transaction">
+      <column name="id" type="bigint">
+        <constraints primaryKey="true" primaryKeyName="pk_transaction_id" />
+      </column>
+      <column name="customer_tenant_id" type="bigint">
+        <constraints nullable="false" foreignKeyName="fk_customer_tenant_id_customer_tenant" references="customer_tenant(id)"/>
+      </column>
+      <column name="service" type="varchar(250)">
+        <constraints nullable="false" />
+      </column>
+      <column name="amount" type="numeric(5, 2)">
+        <constraints nullable="false" />
+      </column>
+      <column name="state" type="varchar(250)" defaultValue="ACTIVE" >
+        <constraints nullable="false" />
+      </column>
+      <column name="rolled_back_by_transaction_id" type="bigint">
+        <constraints nullable="true" foreignKeyName="fk_rolled_back_by_transaction_id_transaction" references="transaction(id)"/>
+      </column>
+      <column name="rolling_back_transaction_id" type="bigint">
+        <constraints nullable="true" foreignKeyName="fk_rolling_back_transaction_id_transaction" references="transaction(id)"/>
+      </column>
+      <column name="created_at" type="timestamp" >
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+    <addAutoIncrement tableName="transaction" columnName="id" columnDataType="bigint" startWith="1" incrementBy="1" />
+    <createSequence sequenceName="transaction_id_seq" incrementBy="1" startValue="1" />
+    <createIndex tableName="transaction" indexName="idx_transaction_customer_tenant_id" unique="false">
+      <column name="customer_tenant_id" />
+    </createIndex>
+  </changeSet>
+
+  <changeSet id="20240129090000_audit" author="ppahuja">
+    <createTable tableName="audit_log">
+      <column name="id" type="bigint">
+        <constraints primaryKey="true" primaryKeyName="pk_audit_log_id" />
+      </column>
+      <column name="operation_name" type="varchar(250)">
+        <constraints nullable="false" />
+      </column>
+      <column name="data" type="varchar(250)">
+      </column>
+      <column name="customer_tenant_id" type="bigint">
+        <constraints nullable="false" />
+      </column>
+      <column name="performed_at" type="timestamp" >
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+    <addAutoIncrement tableName="audit_log" columnName="id" columnDataType="bigint" startWith="1" incrementBy="1" />
+    <createSequence sequenceName="audit_log_id_seq" incrementBy="1" startValue="1" />
+  </changeSet>
+
+  <changeSet id="test_data_inserts" author="ppahuja" context="tests">
+    <sqlFile path="test_data.sql" relativeToChangelogFile="true" />
+  </changeSet>
+  <changeSet id="demo_data_inserts" author="ppahuja" context="dev">
+    <sqlFile path="demo_data.sql" relativeToChangelogFile="true" />
+  </changeSet>
+</databaseChangeLog>

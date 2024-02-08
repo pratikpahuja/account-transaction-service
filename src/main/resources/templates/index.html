@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account transaction service</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        input[type="text"] {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Account transaction service</h2>
+
+    <h3>Get Customer</h3>
+    <button onclick="getCustomers()">Get Customers</button>
+    <div id="customers" style="text-align: left"></div>
+
+    <input type="text" id="tenant" placeholder="Enter Tenant name">
+    <input type="text" id="customerId" placeholder="Enter Customer Id">
+
+    <h3>Perform Transaction</h3>
+    <input type="text" id="service" placeholder="Enter Service name">
+    <input type="text" id="amount" placeholder="Enter amount ex.123.23">
+    <select id="transactionType">
+        <option value="PAY_IN">Pay In</option>
+        <option value="PAY_OUT">Pay Out</option>
+    </select>
+    <button onclick="performTransaction()">Perform Transaction</button>
+    <div id="transaction-result" style="text-align: left"></div>
+
+    <h3>Fetch transactions</h3>
+    <input type="text" id="fetchTransactionsCount" placeholder="Enter count ex. 10">
+    <button onclick="getTransactions()">Get Transactions</button>
+    <div id="transactions" style="text-align: left"></div>
+
+    <h3>Rollback transaction</h3>
+    <input type="text" id="transactionIdToRollback" placeholder="Enter transactionId to rollback">
+    <button onclick="rollbackTransaction()">Rollback Transaction</button>
+
+    <h3>Get audit logs</h3>
+    <input type="text" id="auditLogsCount" placeholder="Enter count ex. 10">
+    <button onclick="getAuditLogs()">Get Audit Logs</button>
+    <div id="audit-logs" style="text-align: left"></div>
+</div>
+
+<script>
+    const handleErrors = response => {
+      if (!response.ok) {
+        alert(response.statusText);
+        throw Error(response.statusText);
+      }
+      return response;
+    }
+
+    function getUser() {
+        const nickName = document.getElementById('nickName').value;
+        // Example using fetch API:
+        fetch(`/api/v1/users/` + nickName, {
+            method: 'GET'
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('userDetails').innerHTML = ('userId: ' + data.id);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to retrieve user');
+        });
+    }
+
+    function performTransaction() {
+        const tenant = document.getElementById('tenant').value;
+        const customerId = document.getElementById('customerId').value;
+        const service = document.getElementById('service').value;
+        const amount = document.getElementById('amount').value;
+        const transactionType = document.getElementById('transactionType').value;
+        // Send a POST request to your backend API to create a user
+        // Example using fetch API:
+        fetch('/api/v1/transactions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                service: service,
+                amount: amount,
+                type: transactionType,
+                customer: {
+                    tenant: tenant,
+                    customerId: customerId
+                }
+            }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to create user');
+            }
+            return response.json(); // Parse the response body as JSON
+        })
+        .then(data => {
+            displaySingleData('transaction-result', data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to create user');
+        });
+    }
+
+    function rollbackTransaction() {
+        const tenant = document.getElementById('tenant').value;
+        const customerId = document.getElementById('customerId').value;
+        const transactionIdToRollback = document.getElementById('transactionIdToRollback').value;
+        // Send a POST request to your backend API to create a user
+        // Example using fetch API:
+        fetch('/api/v1/transactions/' + transactionIdToRollback + '/rollback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                customer: {
+                    tenant: tenant,
+                    customerId: customerId
+                }
+            }),
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to create user');
+            }
+            alert("Rolled back transaction.");
+        });
+    }
+
+    function getCustomers() {
+        // Example using fetch API:
+        fetch(`/api/v1/customers`, {
+            method: 'GET',
+        })
+        .then(response => response.json())
+        .then(data => {
+            displayData('customers', data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to retrieve customers');
+        });
+    }
+
+    function getTransactions() {
+        const tenant = document.getElementById('tenant').value;
+        const customerId = document.getElementById('customerId').value;
+        const fetchTransactionsCount = document.getElementById('fetchTransactionsCount').value;
+        // Example using fetch API:
+        fetch(`/api/v1/transactions?tenant=${tenant}&customerId=${customerId}&count=${fetchTransactionsCount}`, {
+            method: 'GET',
+        })
+        .then(response => response.json())
+        .then(data => {
+            displayData('transactions', data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to retrieve customers');
+        });
+    }
+
+    function getAuditLogs() {
+        const auditLogsCount = document.getElementById('auditLogsCount').value;
+        // Example using fetch API:
+        fetch(`/api/v1/audit-logs?count=${auditLogsCount}`, {
+            method: 'GET',
+        })
+        .then(response => response.json())
+        .then(data => {
+            displayData('audit-logs', data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to retrieve customers');
+        });
+    }
+
+    function displayData(elementId, dataArray) {
+        const element = document.getElementById(elementId);
+        element.innerHTML = '';
+        if (dataArray.length === 0) {
+            element.innerHTML = 'No data.';
+        } else {
+            dataArray.forEach(data => {
+                element.innerHTML += `<hr/><p style="font-size: 12px">` + JSON.stringify(data) + `</p><hr/>`;
+            });
+        }
+    }
+
+    function displaySingleData(elementId, data) {
+        const element = document.getElementById(elementId);
+        element.innerHTML = '';
+        element.innerHTML += `<hr/><p style="font-size: 12px">` + JSON.stringify(data) + `</p><hr/>`;
+    }
+</script>
+</body>
+</html>

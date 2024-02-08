@@ -1,0 +1,6 @@
+spring:
+  liquibase:
+    contexts: tests
+
+  datasource:
+    url: jdbc:postgresql://localhost/transaction_test_db
