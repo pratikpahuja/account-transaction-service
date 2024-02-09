@@ -4,6 +4,9 @@
 - Java 21
 - Docker
 
+### Missing
+- Business exceptions are not translated to view exception, which can further be mapped to appropriate http response codes.
+
 ### Design Considerations
 - Amount fields support only till 2 decimal places at the moment.
 - Added `getCustomers` & `getAuditLogs`
