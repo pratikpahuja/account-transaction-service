@@ -1,4 +1,15 @@
 # Account transactions API
+With pre-existing users and their accounts, this application provides api to perform transaction(holds much similarity to how credit card works).
+Different type of entities playing role are:
+- tenants: There is a parent organisation which has got multiple(2 have been configured in the application) tenants
+- user: These tenants internally have different user, identified by their ids. Same id can be used in different tenants and would point to another user. 
+
+### What it does
+- There can be transactions made on the accounts with both +ve as well as -ve amounts
+- A transaction can be rolled back
+- Recent transaction can be fetched
+- operations are audited
+- The transaction and audit data is saved in the database
 
 ### Requirements
 - Java 21
